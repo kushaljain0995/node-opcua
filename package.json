@@ -87,6 +87,7 @@
 	},
 	"typings": "./packages/node-opcua/node-opcua.d.ts",
 	"dependencies": {
+		"@babel/core": "^7.0.0",
 		"@types/async": "^2.0.49",
 		"@types/chalk": "^2.2.0",
 		"@types/node": "^10.9.3",
