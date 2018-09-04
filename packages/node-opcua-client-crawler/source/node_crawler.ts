@@ -21,6 +21,7 @@ import { makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-
 import { BrowseDescription, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
+import { Variant } from "node-opcua-variant";
 
 const debugLog = make_debugLog(__filename);
 
@@ -238,6 +239,7 @@ export interface NodeCrawlerClientSession {
     browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
 
 }
+
 interface TaskBrowseNode {
     action: (object: CacheNode) => void;
     cacheNode: CacheNode;
@@ -245,12 +247,14 @@ interface TaskBrowseNode {
     referenceTypeId: NodeId;
 }
 
-interface TaskReadNode  {
+type ReadNodeAction =  (value: any) => void;
+
+interface TaskReadNode {
     nodeToRead: {
         attributeId: AttributeIds;
         nodeId: NodeId;
     };
-    action: (dataValue: DataValue) => void;
+    action: ReadNodeAction;
 }
 
 // tslint:disable:max-classes-per-file
@@ -274,16 +278,11 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     public browseCounter: number = 0;
     public transactionCounter: number = 0;
     private readonly session: NodeCrawlerClientSession;
-
     private readonly browseNameMap: any;
-
     private readonly taskQueue: async.AsyncQueue<Task>;
-
     private readonly pendingReadTasks: TaskReadNode[];
     private readonly pendingBrowseTasks: TaskBrowseNode[];
-
     private readonly _objectCache: any;
-
     private readonly _objMap: any;
     private _crawled: any;
     private _visitedNode: any;
@@ -333,7 +332,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         this.browseCounter = 0;
         this.transactionCounter = 0;
     }
-
+    
     public dispose() {
         assert(this.pendingReadTasks.length === 0);
         assert(this.pendingBrowseTasks.length === 0);
@@ -759,7 +758,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                 assert(dataValue.hasOwnProperty("statusCode"));
                 if (dataValue.statusCode.equals(StatusCodes.Good)) {
                     if (dataValue.value === null) {
-                        readTask.action( null);
+                        readTask.action(null);
                     } else {
                         readTask.action(dataValue.value.value);
                     }
