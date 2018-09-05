@@ -12,7 +12,7 @@
     "sourceMap": true
   },
   "files": [
-    "src/generate.ts",
-    "src/index.ts"
+    "source/generate.ts",
+    "source/index.ts"
   ]
 }
